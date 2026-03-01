@@ -1,6 +1,6 @@
 import { getToken, logout } from './auth';
 
-async function fetchWebApi(endpoint: string, method: string, body?: any) {
+async function fetchWebApi(endpoint: string, method: string, body?: Record<string, unknown>) {
     const token = getToken();
     if (!token) throw new Error('No access token');
 
@@ -23,15 +23,16 @@ async function fetchWebApi(endpoint: string, method: string, body?: any) {
             if (errorData?.error?.message) {
                 throw new Error(errorData.error.message);
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             // If json parse fails or we just threw the inner error, handle it
-            if (e.message && e.message !== 'Unexpected end of JSON input') {
+            const errMessage = e instanceof Error ? e.message : '';
+            if (errMessage && errMessage !== 'Unexpected end of JSON input') {
                 throw e; // rethrow the actual API message
             }
         }
 
         // Fallbacks
-        if (res.status === 403) throw new Error('Spotify Premium Required (403 Forbidden)');
+        if (res.status === 403) throw new Error('Spotify Premium Required or Restricted Playlist (403 Forbidden)');
         if (res.status === 404) throw new Error('No Active Device Found (404 Not Found)');
         throw new Error(`Spotify API Error: ${res.status} ${res.statusText}`);
     }

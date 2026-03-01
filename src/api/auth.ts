@@ -77,8 +77,9 @@ export async function redirectToSpotify(
                 } else {
                     onError("Failed to exchange token.");
                 }
-            } catch (err: any) {
-                onError(err.message || String(err));
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err);
+                onError(message);
             } finally {
                 cancel(port).catch(console.error);
             }
@@ -86,8 +87,9 @@ export async function redirectToSpotify(
 
         await openUrl(authUrl.toString());
 
-    } catch (err: any) {
-        onError(err.message || String(err));
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        onError(message);
     }
 }
 

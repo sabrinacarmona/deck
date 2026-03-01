@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Repeat, Shuffle, MonitorSpeaker, Volume2, VolumeX } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
+import { SpotifyArtist } from '../types/spotify';
 import './Playbar.css';
 
 // Helper to format ms to mm:ss
@@ -26,7 +27,7 @@ export function Playbar() {
     }, [progressMs, isDragging]);
 
     const trackName = item?.name || 'No Track Selected';
-    const artistName = item?.artists?.map((a: any) => a.name).join(', ') || 'Unknown Artist';
+    const artistName = item?.artists?.map((a: SpotifyArtist) => a.name).join(', ') || 'Unknown Artist';
     const durationMs = item?.duration_ms || 1; // avoid division by zero
 
     const currentProgress = isDragging ? localProgress : progressMs;

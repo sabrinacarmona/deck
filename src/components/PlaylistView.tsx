@@ -1,19 +1,13 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
 import { getPlaylist, getPlaylistTracks, fetchAbsoluteWebApi } from '../api/spotify';
-import { usePlayer } from '../contexts/PlayerContext';
+import { TrackList } from './TrackList';
+import { SpotifyTrack } from '../types/spotify';
 import './PlaylistView.css';
 
 interface PlaylistItem {
-    track: {
-        id: string;
-        uri: string;
-        name: string;
-        artists: { name: string }[];
-        album: { images: { url: string }[] };
-        duration_ms: number;
-    }
+    added_at?: string;
+    track: SpotifyTrack | null;
 }
 
 interface PlaylistData {
@@ -38,7 +32,6 @@ export function PlaylistView() {
     const [isLoading, setIsLoading] = useState(true);
     const [nextUrl, setNextUrl] = useState<string | null>(null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const { play } = usePlayer();
 
     useEffect(() => {
         if (!id) return;
@@ -112,13 +105,6 @@ export function PlaylistView() {
         return <div className="main-content"><div className="error" style={{ color: 'var(--text-secondary)' }}>Failed to load playlist</div></div>;
     }
 
-    const formatTime = (ms: number) => {
-        const totalSeconds = Math.floor((ms || 0) / 1000);
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    };
-
     return (
         <div className="main-content playlist-view">
             <div className="playlist-header">
@@ -135,19 +121,14 @@ export function PlaylistView() {
             </div>
 
             <div className="playlist-tracks">
-                <div className="tracks-header">
-                    <div className="col-index">#</div>
-                    <div className="col-title">Title</div>
-                    <div className="col-time">Time</div>
-                </div>
-                {(!playlist.tracks?.items || playlist.tracks.items.length === 0) && (
-                    <div style={{ padding: '32px', textAlign: 'left', color: '#ff6b6b', fontSize: '13px', whiteSpace: 'pre-wrap', fontFamily: 'monospace', maxWidth: '600px', margin: '0 auto', background: 'rgba(255, 107, 107, 0.1)', borderRadius: '8px' }}>
+                {(!playlist.tracks?.items || playlist.tracks.items.length === 0) ? (
+                    <div style={{ padding: '32px', textAlign: 'left', color: '#ff6b6b', fontSize: '13px', whiteSpace: 'pre-wrap', fontFamily: 'monospace', maxWidth: '600px', margin: '40px auto', background: 'rgba(255, 107, 107, 0.1)', borderRadius: '8px' }}>
                         <h3 style={{ marginTop: 0, color: '#fff' }}>⚠️ Spotify API Error: {playlist._error || "Missing Tracks"}</h3>
                         <p style={{ color: '#ccc' }}>
                             Your Spotify Developer App is currently in <b>"Development Mode"</b>.
                         </p>
                         <p style={{ color: '#ccc' }}>
-                            In Development Mode, Spotify blocks access to the track data of playlists created by other users (like Krista Grams) to prevent data scraping.
+                            In Development Mode, Spotify blocks access to the track data of playlists created by other users to prevent data scraping.
                         </p>
                         <strong style={{ color: '#fff', display: 'block', marginTop: '16px' }}>How to fix this:</strong>
                         <ol style={{ paddingLeft: '20px', color: '#ccc', margin: '8px 0' }}>
@@ -162,44 +143,13 @@ export function PlaylistView() {
                             </div>
                         </details>
                     </div>
-                )}
-                {playlist.tracks?.items?.map((item, index) => {
-                    if (!item?.track) {
-                        return (
-                            <div key={`err-${index}`} style={{ padding: '8px 16px', color: '#ff6b6b', fontSize: '11px', overflow: 'hidden' }}>
-                                [Debug Null Track] {JSON.stringify(item).substring(0, 150)}
-                            </div>
-                        );
-                    }
-                    const isLastItem = index === playlist.tracks.items.length - 1;
-                    return (
-                        <div
-                            ref={isLastItem ? lastTrackElementRef : null}
-                            key={`${item.track.id || index}-${index}`}
-                            className="track-row"
-                            onClick={() => {
-                                if (playlist.uri && item.track.uri) {
-                                    play({ context_uri: playlist.uri, offset: { uri: item.track.uri } } as any);
-                                } else if (item.track.uri) {
-                                    play({ uris: [item.track.uri] });
-                                }
-                            }}
-                        >
-                            <div className="col-index">{index + 1}</div>
-                            <div className="col-title">
-                                <div className="track-item-info">
-                                    <span className="track-name">{item.track.name || 'Unknown Track'}</span>
-                                    <span className="track-artists">{item.track.artists?.map(a => a.name).join(', ') || 'Unknown Artist'}</span>
-                                </div>
-                            </div>
-                            <div className="col-time">{formatTime(item.track.duration_ms)}</div>
-                        </div>
-                    );
-                })}
-                {isLoadingMore && (
-                    <div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}>
-                        <Loader2 size={24} className="spinner" style={{ color: 'var(--text-secondary)' }} />
-                    </div>
+                ) : (
+                    <TrackList
+                        items={playlist.tracks.items}
+                        contextUri={playlist.uri}
+                        isLoadingMore={isLoadingMore}
+                        lastItemRef={lastTrackElementRef}
+                    />
                 )}
             </div>
         </div>

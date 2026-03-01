@@ -2,14 +2,15 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { getPlayerState, play as apiPlay, pause as apiPause, nextTrack, previousTrack, seek as apiSeek, getDevices, transferPlayback, setVolume as apiSetVolume, setShuffle as apiSetShuffle, setRepeatMode as apiSetRepeat } from '../api/spotify';
 import { getToken } from '../api/auth';
 import { register, unregisterAll, isRegistered } from '@tauri-apps/plugin-global-shortcut';
+import { SpotifyTrack, SpotifyDevice } from '../types/spotify';
 
 export interface PlayerState {
     isPlaying: boolean;
     progressMs: number;
-    currentTrack: any | null; // The track object
+    currentTrack: SpotifyTrack | null; // The track object
     durationMs: number;
-    activeDevice: any | null;
-    devices: any[];
+    activeDevice: SpotifyDevice | null;
+    devices: SpotifyDevice[];
     shuffleState: boolean;
     repeatState: string; // 'track' | 'context' | 'off'
     error: string | null;
@@ -17,11 +18,11 @@ export interface PlayerState {
 
 interface PlayerContextType {
     isPlaying: boolean;
-    currentTrack: any | null;
+    currentTrack: SpotifyTrack | null;
     progressMs: number;
     durationMs: number;
-    devices: any[]; // Changed from Device[] as Device is not defined in the provided snippet
-    activeDevice: any | null; // Changed from Device | null
+    devices: SpotifyDevice[];
+    activeDevice: SpotifyDevice | null;
     shuffleState: boolean;
     repeatState: string;
     error: string | null;
@@ -43,10 +44,10 @@ const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [progressMs, setProgressMs] = useState(0);
-    const [currentTrack, setCurrentTrack] = useState<any | null>(null);
+    const [currentTrack, setCurrentTrack] = useState<SpotifyTrack | null>(null);
     const [durationMs, setDurationMs] = useState(0);
-    const [activeDevice, setActiveDevice] = useState<any | null>(null);
-    const [devices, setDevices] = useState<any[]>([]);
+    const [activeDevice, setActiveDevice] = useState<SpotifyDevice | null>(null);
+    const [devices, setDevices] = useState<SpotifyDevice[]>([]);
     const [shuffleState, setShuffleState] = useState(false);
     const [repeatState, setRepeatState] = useState('off');
     const [error, setError] = useState<string | null>(null);
@@ -63,9 +64,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             if (data && data.devices && pollingRef.current) {
                 setDevices(data.devices);
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error("Failed to fetch devices", e);
-            setError(e.message || "Failed to fetch devices");
+            setError(e instanceof Error ? e.message : "Failed to fetch devices");
         }
     }, []);
 
@@ -91,9 +92,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
             // Periodically refresh devices too
             refreshDevices();
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error("Failed to fetch player state", e);
-            setError(e.message || "Failed to fetch player state");
+            setError(e instanceof Error ? e.message : "Failed to fetch player state");
         }
     }, [refreshDevices]);
 
@@ -160,9 +161,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             await apiPlay(options);
             setTimeout(refreshState, 500);
             clearError();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Play failed", err);
-            setError(err.message || 'Failed to play track');
+            setError(err instanceof Error ? err.message : 'Failed to play track');
             setIsPlaying(false); // Revert on failure
             refreshState();
         }
@@ -179,9 +180,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             }
             setTimeout(refreshState, 500);
             clearError();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Toggle playback failed", err);
-            setError(err.message || 'Failed to toggle playback');
+            setError(err instanceof Error ? err.message : 'Failed to toggle playback');
             refreshState(); // Revert on failure
         }
     };
@@ -191,9 +192,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             await nextTrack();
             setTimeout(refreshState, 500);
             clearError();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Skip next failed", err);
-            setError(err.message || 'Failed to skip track');
+            setError(err instanceof Error ? err.message : 'Failed to skip track');
         }
     };
 
@@ -202,9 +203,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             await previousTrack();
             setTimeout(refreshState, 500);
             clearError();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Skip previous failed", err);
-            setError(err.message || 'Failed to skip track');
+            setError(err instanceof Error ? err.message : 'Failed to skip track');
         }
     };
 
@@ -214,21 +215,21 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             await apiSeek(positionMs);
             setTimeout(refreshState, 500);
             clearError();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Seek failed", err);
-            setError(err.message || 'Failed to seek');
+            setError(err instanceof Error ? err.message : 'Failed to seek');
             refreshState(); // Revert on failure
         }
     };
 
     const handleSetVolume = async (volumePercent: number) => {
         try {
-            setActiveDevice((prev: any) => prev ? { ...prev, volume_percent: volumePercent } : null); // Optimistic UI
+            setActiveDevice((prev) => prev ? { ...prev, volume_percent: volumePercent } : null); // Optimistic UI
             await apiSetVolume(volumePercent);
             clearError();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Set volume failed", err);
-            setError(err.message || 'Failed to set volume');
+            setError(err instanceof Error ? err.message : 'Failed to set volume');
             refreshState(); // Revert on failure
         }
     };
@@ -239,9 +240,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             setShuffleState(newState); // Optimistic UI
             await apiSetShuffle(newState);
             clearError();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Toggle shuffle failed", err);
-            setError(err.message || 'Failed to set shuffle');
+            setError(err instanceof Error ? err.message : 'Failed to set shuffle');
             refreshState(); // Revert on failure
         }
     };
@@ -250,11 +251,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         try {
             const nextMode = repeatState === 'off' ? 'context' : repeatState === 'context' ? 'track' : 'off';
             setRepeatState(nextMode); // Optimistic UI
-            await apiSetRepeat(nextMode as any);
+            await apiSetRepeat(nextMode as 'track' | 'context' | 'off');
             clearError();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Toggle repeat failed", err);
-            setError(err.message || 'Failed to set repeat mode');
+            setError(err instanceof Error ? err.message : 'Failed to set repeat mode');
             refreshState(); // Revert on failure
         }
     };
@@ -264,9 +265,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             await transferPlayback(deviceId, isPlaying);
             setTimeout(() => { refreshState(); refreshDevices(); }, 500);
             clearError();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Transfer device failed", err);
-            setError(err.message || 'Failed to transfer playback');
+            setError(err instanceof Error ? err.message : 'Failed to transfer playback');
         }
     };
 

@@ -1,25 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
 import { getSavedTracks, fetchAbsoluteWebApi } from '../api/spotify';
 import { usePlayer } from '../contexts/PlayerContext';
-import { Clock, Play, Loader2 } from 'lucide-react';
-import './PlaylistView.css'; // We can reuse the playlist view styles
-
-// Helper to format ms to m:ss
-function formatDuration(ms: number) {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = ((ms % 60000) / 1000).toFixed(0);
-    return `${minutes}:${Number(seconds) < 10 ? '0' : ''}${seconds}`;
-}
-
-// Format date added
-function formatDate(dateStr: string) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-}
+import { Play, Loader2 } from 'lucide-react';
+import { TrackList } from './TrackList';
+import { SpotifyTrack } from '../types/spotify';
+import './PlaylistView.css';
 
 export function LikedSongs() {
     const { play } = usePlayer();
-    const [tracks, setTracks] = useState<any[]>([]);
+    const [tracks, setTracks] = useState<{ added_at?: string; track: SpotifyTrack | null }[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [totalTracks, setTotalTracks] = useState(0);
     const [nextUrl, setNextUrl] = useState<string | null>(null);
@@ -83,16 +72,12 @@ export function LikedSongs() {
         // Liked songs acts differently than a standard playlist.
         // It doesn't have a single context URI, so we pass an array of track URIs
         if (tracks.length > 0) {
-            const uris = tracks.map(t => t.track.uri);
+            const uris = tracks.filter(t => t.track !== null).map(t => t.track!.uri);
             play({ uris });
         }
     };
 
-    const handlePlayTrack = (trackUri: string, index: number) => {
-        // Play the track, providing surrounding URIs for context if possible
-        const uris = tracks.slice(index, index + 50).map(t => t.track.uri);
-        play({ uris: uris.length > 0 ? uris : [trackUri] });
-    };
+
 
     if (isLoading && tracks.length === 0) {
         return (
@@ -128,46 +113,16 @@ export function LikedSongs() {
                 </button>
             </div>
 
-            <div className="tracks-list">
-                <div className="tracks-header">
-                    <div className="col-hash">#</div>
-                    <div className="col-title">Title</div>
-                    <div className="col-album">Album</div>
-                    <div className="col-date">Date added</div>
-                    <div className="col-time"><Clock size={16} /></div>
-                </div>
-
-                {tracks.map((item, index) => {
-                    const track = item.track;
-                    if (!track) return null; // Defensive check
-
-                    return (
-                        <div
-                            className="track-row"
-                            key={`${track.id}-${index}`}
-                            onClick={() => handlePlayTrack(track.uri, index)}
-                        >
-                            <div className="col-hash">{index + 1}</div>
-                            <div className="col-title track-title-col">
-                                {track.album?.images?.[0] && (
-                                    <img src={track.album.images[0].url} alt="" className="track-img" />
-                                )}
-                                <div className="track-name-artist">
-                                    <span className="track-name">{track.name}</span>
-                                    <span className="track-artist">{track.artists?.map((a: any) => a.name).join(', ') || 'Unknown Artist'}</span>
-                                </div>
-                            </div>
-                            <div className="col-album">{track.album?.name || 'Unknown Album'}</div>
-                            <div className="col-date">{formatDate(item.added_at)}</div>
-                            <div className="col-time">{formatDuration(track.duration_ms)}</div>
-                        </div>
-                    );
-                })}
-
-                {/* Loading Indicator for Infinite Scroll */}
-                <div ref={observerTarget} style={{ height: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '16px' }}>
-                    {isLoading && tracks.length > 0 && <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Loading more...</span>}
-                </div>
+            <div className="tracks-list" style={{ padding: '0 32px 32px' }}>
+                <TrackList
+                    items={tracks}
+                    isLoadingMore={isLoading && tracks.length > 0}
+                    lastItemRef={(node) => {
+                        if (observerTarget.current !== node) {
+                            observerTarget.current = node as any;
+                        }
+                    }}
+                />
             </div>
         </div>
     );

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import { search, fetchAbsoluteWebApi } from '../api/spotify';
 import { usePlayer } from '../contexts/PlayerContext';
+import { SpotifyTrack, SpotifyArtist } from '../types/spotify';
 import debounce from 'lodash.debounce';
 import './SearchModal.css';
 
@@ -13,7 +14,7 @@ interface SearchModalProps {
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     const { play } = usePlayer();
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState<any[]>([]);
+    const [results, setResults] = useState<SpotifyTrack[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [nextUrl, setNextUrl] = useState<string | null>(null);
     const observerTarget = useRef(null);
@@ -150,7 +151,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                                     )}
                                     <div className="search-track-info">
                                         <div className="search-track-title">{track.name}</div>
-                                        <div className="search-track-artist">{track.artists?.map((a: any) => a.name).join(', ')}</div>
+                                        <div className="search-track-artist">{track.artists?.map((a: SpotifyArtist) => a.name).join(', ')}</div>
                                     </div>
                                 </div>
                             ))}

@@ -86,3 +86,71 @@
     font-size: 14px;
     font-weight: 600;
 }
+
+.search-tracks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-track-row {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-track-row:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.search-track-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    object-fit: cover;
+    margin-right: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.search-track-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.search-track-title {
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-track-artist {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-spinner {
+    color: var(--text-secondary);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

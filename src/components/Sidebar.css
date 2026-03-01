@@ -25,7 +25,7 @@
     font-size: 14px;
     font-weight: 700;
     /* Bolder font for primary navigation */
-    transition: color var(--transition-short);
+    transition: all var(--transition-short);
     background: none;
     border: none;
     font-family: inherit;
@@ -39,6 +39,23 @@
 
 .nav-item:hover,
 .nav-item.active {
+    color: var(--text-primary);
+}
+
+.nav-item.active {
+    background-color: var(--bg-surface-elevated);
+}
+
+.library-toggle {
+    justify-content: space-between;
+}
+
+.library-toggle .chevron {
+    color: var(--text-secondary);
+    transition: transform var(--transition-short);
+}
+
+.library-toggle:hover .chevron {
     color: var(--text-primary);
 }
 
@@ -69,7 +86,8 @@
 .playlist-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 4px;
+    /* Tighter gap for buttons */
 }
 
 .playlist-item {
@@ -77,12 +95,28 @@
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: color var(--transition-short);
+    transition: all var(--transition-short);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 10px 12px;
+    margin: 0 -12px;
+    border-radius: var(--border-radius-sm);
+    font-family: inherit;
+    width: calc(100% + 24px);
 }
 
 .playlist-item:hover {
     color: var(--text-primary);
+    background-color: var(--bg-hover);
+}
+
+.playlist-item.active {
+    color: var(--text-primary);
+    background-color: var(--bg-surface-elevated);
+    font-weight: 600;
+    /* Distinct active state */
 }

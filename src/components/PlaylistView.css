@@ -1,0 +1,135 @@
+.playlist-view {
+    /* Extending main-content styles implicitly, defining specific playlist additions */
+}
+
+.playlist-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.playlist-cover {
+    width: 232px;
+    height: 232px;
+    object-fit: cover;
+    border-radius: var(--border-radius-sm);
+    box-shadow: 0 4px 60px rgba(0, 0, 0, 0.5);
+    background-color: var(--bg-surface-elevated);
+}
+
+.playlist-cover-placeholder {
+    width: 232px;
+    height: 232px;
+    border-radius: var(--border-radius-sm);
+    box-shadow: 0 4px 60px rgba(0, 0, 0, 0.5);
+    background-color: var(--bg-surface-elevated);
+}
+
+.playlist-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.playlist-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.playlist-title {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--text-primary);
+    margin: 0 0 16px 0;
+    letter-spacing: -0.04em;
+    word-break: break-word;
+    /* Important for long titles */
+}
+
+.playlist-description {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0;
+}
+
+.playlist-tracks {
+    display: flex;
+    flex-direction: column;
+}
+
+.tracks-header {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.col-index {
+    width: 40px;
+    text-align: right;
+    padding-right: 16px;
+}
+
+.col-title {
+    flex: 1;
+    min-width: 0;
+    /* important for flexbox text truncation */
+}
+
+.col-time {
+    width: 60px;
+    text-align: right;
+}
+
+.track-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: var(--border-radius-sm);
+    transition: background-color var(--transition-fast);
+    cursor: pointer;
+    margin-bottom: 4px;
+    /* small gap */
+}
+
+.track-row:hover {
+    background-color: var(--bg-hover);
+}
+
+.track-row:hover .col-title .track-name {
+    color: var(--text-primary);
+}
+
+.track-item-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.track-name {
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color var(--transition-fast);
+}
+
+.track-artists {
+    color: var(--text-secondary);
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

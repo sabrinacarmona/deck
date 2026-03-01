@@ -62,8 +62,8 @@ Deck/
 - **Frontend Framework:** React 18 (via Vite).
 - **Desktop Runtime:** Tauri v2. (`@tauri-apps/api`, `@tauri-apps/cli`).
 - **State Management:** 
-  - **Zustand** (`^5.0.0`) is installed in `package.json` but currently, the app relies heavily on a global React Context (`PlayerContext.tsx`) for Spotify Playback State, Token Management, and User Profile data. 
-  - *Recommendation: Future state scaling should migrate from the monolithic `PlayerContext` to Zustand slices.*
+  - **PlayerContext.tsx**: Currently, the app relies heavily on a global React Context for Spotify Playback State, Token Management, and User Profile data.
+  - **Zustand**: (`^5.0.0`) is installed in `package.json` but completely unused. If state isn't migrated to Zustand in the immediate future, removing it to reduce dependency bloat and CVE surface area is highly recommended.
 - **Styling:** Vanilla CSS (`index.css`) emphasizing a dark-themed, glassmorphic design system using CSS variables (`var(--bg-card)`) for maintainability.
 - **Routing:** `react-router-dom` v7.
 - **Icons:** `lucide-react`.
@@ -75,7 +75,7 @@ Deck/
 ### OAuth Flow & Persistence
 Authentication is handled via the **OAuth 2.0 PKCE Flow** in `src/api/auth.ts`.
 - The `@fabianlars/tauri-plugin-oauth` library spins up a temporary localhost server on port `1421` to capture the Spotify callback token securely without deep-linking complexities on macOS.
-- **⚠️ Security/Persistence Note:** Access and Refresh tokens are currently persisted insecurely via standard HTML5 `window.localStorage`. While fine for the MVP, production releases should migrate to Tauri's native Secure Storage Plugin (`tauri-plugin-store`) to encrypt these tokens at rest on the user's filesystem.
+- **⚠️ Security/Persistence Note:** Access and Refresh tokens are currently persisted insecurely via standard HTML5 `window.localStorage`. While fine for the MVP, production releases must migrate to Tauri's native Secure Storage Plugin (`tauri-plugin-store`) to encrypt these tokens at rest on the user's filesystem.
 
 ### Web Playback SDK Limitations
 The app injects the Spotify Web Playback SDK (`https://sdk.scdn.co/spotify-player.js`) into `index.html`.
@@ -88,51 +88,49 @@ The app injects the Spotify Web Playback SDK (`https://sdk.scdn.co/spotify-playe
 ### 1. Core UI Components & Views
 - **Sidebar:** Navigation menu linking to Home, Search, and Library.
 - **Playbar (`Playbar.tsx`):** Persistent bottom control bar with mapped Playback SDK controls (play/pause, skip, shuffle, repeat) and volume controls.
-- **MainContent/Home (`MainContent.tsx`):** Displays featured playlists, recently played items, and quick mixes.
 - **Search (`SearchModal.tsx`):** Modal overlay relying on `lodash.debounce` for real-time track and artist searches.
-- **Liked Songs (`LikedSongs.tsx`) & Playlist View (`PlaylistView.tsx`):** Renders collections of tracks.
+- **Liked Songs & Playlist View:** Interactive tables rendering collections of tracks.
 
 ### 2. Technical Debt & Type Safety Refactoring
 - **Strict TypeScript Enforcement:** Eradicated over 20+ instances of `any` types that bypassed the compiler.
   - Sourced strict interfaces (`SpotifyTrack`, `SpotifyArtist`, etc.) into a global `src/types/spotify.d.ts`.
-  - Replaced unsafe `catch (e: any)` statements with `catch (err: unknown)` utilizing standard `Error` type extraction across `auth.ts` and `spotify.ts`.
+  - Replaced unsafe `catch (e: any)` statements with `catch (err: unknown)`.
 - **UI Component Extraction (`TrackList.tsx`):** 
-  - Extracted highly duplicated table-rendering logic from `PlaylistView` and `LikedSongs` into a strongly-typed, reusable `<TrackList />` component, reducing parent view file sizes by over 50%.
+  - Extracted highly duplicated table-rendering logic from `PlaylistView` and `LikedSongs` into a strongly-typed, reusable `<TrackList />` component.
 - **Verification:** The codebase complies structurally, outputting 0 errors on `npx tsc --noEmit`.
 
 ### 3. Graceful Error Handling & Development Mode Limits
 - **Issue:** Fetching playlists not owned by the developer while the Spotify App is in "Development Mode" resulted in a `403 Forbidden` error protecting user data.
-- **Resolution:** 
-  - The API layer intentionally maps `403` to `"Spotify Premium Required or Restricted Playlist (403 Forbidden)"`.
-  - `PlaylistView.tsx` detects this error and mounts a custom warning banner explaining the limitation instead of crashing or showing a blank table. Users are guided to request a quota extension or duplicate playlists they wish to view.
+- **Resolution:** `PlaylistView.tsx` detects this error and mounts a custom warning banner explaining the developer mode limitation instead of crashing.
 
 ---
 
-## ⚙️ Building & Distribution
+## 🚨 Production & Infrastructure Readiness (Critical Blockers)
 
-### Production Builds
-To compile the raw React application and package it within Tauri into a native macOS backend (`.app`, `.dmg`):
-```bash
-npm run tauri build
-```
-- **App Code Signing:** For macOS distribution, you must configure Apple Developer Certificates inside `src-tauri/tauri.conf.json` to sign the compiled `.dmg`/`.app` packages. Without this, users will face massive "Malicious Software" blocks by macOS Gatekeeper indicating the app is from an Unidentified Developer.
+Before declaring this application production-ready or distributing it to users, the following architectural gaps must be addressed:
 
-### Custom Deep Linking (Future)
-Currently, authentication bypasses deep-link routing by explicitly opening port `1421`. If migrating to a standard URI scheme (e.g. `deck://callback`), `tauri-plugin-deep-link` must be installed natively and associated with macOS `Info.plist` manifests.
+### 1. CI/CD Pipeline & Auto-Updater
+- **Missing Build Automation:** There are currently no GitHub Actions workflows to compile Universal macOS binaries (Silicon + Intel). Relying on local developer `npm run tauri build` execution is a risk.
+- **Updates:** Tauri's `tauri-plugin-updater` must be configured. Without it, users will be permanently stuck on v0.1.0 unless they manually redownload `.dmg` files for every patch.
 
----
+### 2. Production Error Tracking
+- **Blind Runtime:** A desktop app cannot rely on `console.error()`. We currently have zero visibility into production frontend crashes or Rust backend panics.
+- **Action:** Integrate a crash reporting tool (e.g., Sentry, Datadog) to capture unhandled promise rejections and boundaries. 
 
-## 🧪 Testing Environment
-**Current State:** There are **zero** automated tests (Unit, Integration, or E2E) integrated into the project.
-- **Recommendation:** Implement `Vitest` with `React Testing Library` for DOM and state verifications. Given the heavy reliance on the remote Spotify API, Mock Service Worker (`msw`) implementation will be critical for mocking out the heavy network payloads during CI/CD cycles without exceeding rate limits.
+### 3. Data Privacy & PII Mapping
+- **Scope Awareness:** The app requests `user-read-email` and `user-read-private`. 
+- **Action:** If crash reporting (Sentry) is added, ensure the logger is strictly scrubbing PII (email, user ID, real name) before transmission to avoid immediate GDPR/CCPA violations. 
 
----
+### 4. Code Signing & Gatekeeper
+- **macOS Blocks:** Mac distribution requires Apple Developer Certificates configured inside `src-tauri/tauri.conf.json`. Without notarization, macOS Gatekeeper will block the application as "Malicious Software".
 
-## 🔮 Next Steps
+### 5. Memory Management & GPU Drain (Virtualization)
+- **Glassmorphism + Huge DOM:** Rendering 1,000+ DOM nodes in `TrackList.tsx` mixed with heavy CSS backdrops inside Tauri's WebKit wrapper will cause severe scroll lag and battery drain.
+- **Action:** `react-window` or `@tanstack/react-virtual` is a mandatory blocker for production release.
 
-1. **Production Relocation:** Before releasing to production, request a quota extension from Spotify via the Developer Dashboard to remove the 403 API barriers for end-users interacting with external playlists.
-2. **State Migration:** Move complex playback queue polling and caching logic out of `PlayerContext.tsx` and into `Zustand` to prevent unnecessary re-renders of the entire app tree.
-3. **Performance:** Virtualize the `TrackList` component (e.g., using `react-window` or `@tanstack/react-virtual`) as rendering DOM nodes for exceptionally large playlists (1000+ songs) will cause scroll lag.
+### 6. Automated Testing Vacuum
+- **The Gap:** There are zero automated tests.
+- **Action:** Implement `Vitest` with `React Testing Library`. Configure Mock Service Worker (`msw`) so CI/CD pipelines don't exhaust Spotify API rate limits during test runs.
 
 ---
 *Document generated on conclusion of the primary development and refactoring phase.*

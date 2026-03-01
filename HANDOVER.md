@@ -133,4 +133,26 @@ Before declaring this application production-ready or distributing it to users, 
 - **Action:** Implement `Vitest` with `React Testing Library`. Configure Mock Service Worker (`msw`) so CI/CD pipelines don't exhaust Spotify API rate limits during test runs.
 
 ---
+
+## 🎨 UI/UX & Design System Deficiencies (UX Blockers)
+
+While the engineering infrastructure has been mapped, the UI/UX layer contains significant gaps that negatively impact usability and drop-off rates. These must be addressed by design and frontend teams:
+
+### 1. Accessibility (a11y) & Contrast
+- **The Flaw:** The current "Glassmorphism" design system lacks documented WCAG contrast compliance. Furthermore, there is zero keyboard navigation support or `aria-labels` for screen readers.
+- **Action:** Conduct an accessibility audit. Implement keyboard shortcuts (e.g., `Space` to play/pause, `Arrows` to skip) and ensure all intractable DOM nodes are tab-indexed.
+
+### 2. The "First Run" Empty State
+- **The Flaw:** When a brand-new Spotify user (with zero liked songs and zero playlists) logs in, they are met with a completely empty library and no Call-to-Action (CTA). This is a dead end for user retention.
+- **Action:** Design and implement "Empty States" that guide users to discover, search, or play featured quick mixes when their personal context is blank.
+
+### 3. "Offline" or "Rate-Limited" UX States
+- **The Flaw:** The app relies entirely on the live Spotify API. If the network drops or Spotify rate-limits the developer key, the app fails silently or displays blank screens. 
+- **Action:** Design "Skeleton Loaders" for data fetching states and implement "Toast Notifications" translating network/API failures into human-readable alerts.
+
+### 4. Responsiveness & Window Management
+- **The Flaw:** Tauri configures a rigid `800x600` default window. There is no documented behavior for extreme window resizing.
+- **Action:** Define responsive CSS breakpoints. Consider adding a dedicated "Mini Player" layout mode for when the application is squeezed horizontally.
+
+---
 *Document generated on conclusion of the primary development and refactoring phase.*

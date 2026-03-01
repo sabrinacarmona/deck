@@ -36,6 +36,27 @@
 
 ---
 
+## 🗂️ Project Directory Structure
+
+```text
+Deck/
+├── package.json          # Node dependencies and build scripts
+├── tauri.conf.json       # Top-level Tauri frontend/backend mappings
+├── src-tauri/            # **Rust Backend** (System integrations, OS APIs)
+│   ├── Cargo.toml        # Rust dependencies
+│   ├── src/main.rs       # Entrypoint for the Tauri application
+│   └── tauri.conf.json   # Deep Tauri configuration (Windows, Icons, Bundle IDs)
+├── src/                  # **React Frontend**
+│   ├── api/              # Spotify & Auth fetch wrappers (`auth.ts`, `spotify.ts`)
+│   ├── components/       # Reusable UI components (`Playbar`, `Sidebar`, `TrackList`)
+│   ├── contexts/         # Global App State (`PlayerContext.tsx`)
+│   ├── types/            # Global TypeScript definitions (`spotify.d.ts`)
+│   ├── App.tsx           # Main React Router hub
+│   └── index.css         # Global CSS variables and glassmorphic design system
+```
+
+---
+
 ## 🏗️ Architecture & Technology Stack
 
 - **Frontend Framework:** React 18 (via Vite).
@@ -51,9 +72,10 @@
 
 ## 🔐 Auth & The Spotify Web Playback SDK
 
-### OAuth Flow
+### OAuth Flow & Persistence
 Authentication is handled via the **OAuth 2.0 PKCE Flow** in `src/api/auth.ts`.
 - The `@fabianlars/tauri-plugin-oauth` library spins up a temporary localhost server on port `1421` to capture the Spotify callback token securely without deep-linking complexities on macOS.
+- **⚠️ Security/Persistence Note:** Access and Refresh tokens are currently persisted insecurely via standard HTML5 `window.localStorage`. While fine for the MVP, production releases should migrate to Tauri's native Secure Storage Plugin (`tauri-plugin-store`) to encrypt these tokens at rest on the user's filesystem.
 
 ### Web Playback SDK Limitations
 The app injects the Spotify Web Playback SDK (`https://sdk.scdn.co/spotify-player.js`) into `index.html`.
@@ -86,12 +108,31 @@ The app injects the Spotify Web Playback SDK (`https://sdk.scdn.co/spotify-playe
 
 ---
 
-## 🔮 Next Steps / Future Considerations
+## ⚙️ Building & Distribution
+
+### Production Builds
+To compile the raw React application and package it within Tauri into a native macOS backend (`.app`, `.dmg`):
+```bash
+npm run tauri build
+```
+- **App Code Signing:** For macOS distribution, you must configure Apple Developer Certificates inside `src-tauri/tauri.conf.json` to sign the compiled `.dmg`/`.app` packages. Without this, users will face massive "Malicious Software" blocks by macOS Gatekeeper indicating the app is from an Unidentified Developer.
+
+### Custom Deep Linking (Future)
+Currently, authentication bypasses deep-link routing by explicitly opening port `1421`. If migrating to a standard URI scheme (e.g. `deck://callback`), `tauri-plugin-deep-link` must be installed natively and associated with macOS `Info.plist` manifests.
+
+---
+
+## 🧪 Testing Environment
+**Current State:** There are **zero** automated tests (Unit, Integration, or E2E) integrated into the project.
+- **Recommendation:** Implement `Vitest` with `React Testing Library` for DOM and state verifications. Given the heavy reliance on the remote Spotify API, Mock Service Worker (`msw`) implementation will be critical for mocking out the heavy network payloads during CI/CD cycles without exceeding rate limits.
+
+---
+
+## 🔮 Next Steps
 
 1. **Production Relocation:** Before releasing to production, request a quota extension from Spotify via the Developer Dashboard to remove the 403 API barriers for end-users interacting with external playlists.
 2. **State Migration:** Move complex playback queue polling and caching logic out of `PlayerContext.tsx` and into `Zustand` to prevent unnecessary re-renders of the entire app tree.
-3. **App Code Signing:** For macOS distribution, configure Apple Developer Certificates inside `tauri.conf.json` to sign the compiled `.dmg`/`.app` packages to bypass the macOS Gatekeeper warning.
-4. **Performance:** Virtualize the `TrackList` component (e.g., using `react-window` or `@tanstack/react-virtual`) as rendering DOM nodes for exceptionally large playlists (1000+ songs) will cause scroll lag.
+3. **Performance:** Virtualize the `TrackList` component (e.g., using `react-window` or `@tanstack/react-virtual`) as rendering DOM nodes for exceptionally large playlists (1000+ songs) will cause scroll lag.
 
 ---
 *Document generated on conclusion of the primary development and refactoring phase.*

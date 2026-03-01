@@ -5,6 +5,9 @@
     flex-direction: column;
     padding: 24px 16px;
     gap: 32px;
+    flex-shrink: 0;
+    /* CRITICAL: Prevents sidebar from collapsing when main content is large */
+    z-index: 10;
 }
 
 .sidebar-nav {
@@ -20,14 +23,18 @@
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 14px;
-    font-weight: 600;
-    transition: color 0.2s ease;
+    font-weight: 700;
+    /* Bolder font for primary navigation */
+    transition: color var(--transition-short);
     background: none;
     border: none;
     font-family: inherit;
     cursor: pointer;
-    padding: 0;
-    width: 100%;
+    padding: 8px 12px;
+    margin: 0 -12px;
+    /* Negative margin to increase click target without affecting visual alignment */
+    border-radius: var(--border-radius-sm);
+    width: calc(100% + 24px);
 }
 
 .nav-item:hover,
@@ -39,6 +46,24 @@
     flex: 1;
     overflow-y: auto;
     margin-top: 8px;
+    margin-right: -8px;
+    /* Push scrollbar closer to edge */
+    padding-right: 8px;
+    /* Give content breathing room */
+}
+
+/* Hide scrollbar for a cleaner look */
+.sidebar-library::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-library::-webkit-scrollbar-thumb {
+    background: var(--bg-hover);
+    border-radius: 4px;
+}
+
+.sidebar-library::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 .playlist-list {
@@ -50,8 +75,12 @@
 .playlist-item {
     color: var(--text-secondary);
     font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    transition: color 0.2s ease;
+    transition: color var(--transition-short);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .playlist-item:hover {

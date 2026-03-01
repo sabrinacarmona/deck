@@ -1,13 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
-  background-color: #050505;
-  /* Deep, near-black dark mode */
-  color: #ffffff;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --sidebar-width: 250px;
-  --playbar-height: 85px;
-  --text-primary: #ffffff;
-  --text-secondary: #a3a3a3;
-  --bg-hover: rgba(255, 255, 255, 0.08);
+  /* Deck Premium Color System */
+  --bg-base: #121212;
+  --bg-surface: #181818;
+  --bg-surface-elevated: #282828;
+  --bg-hover: rgba(255, 255, 255, 0.1);
+  --bg-active: rgba(255, 255, 255, 0.15);
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #B3B3B3;
+  --text-subdued: #727272;
+
+  --accent-color: #1DB954;
+  /* Spotify Green */
+
+  --sidebar-width: 260px;
+  --playbar-height: 90px;
+
+  /* Utilities */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
 }
 
 * {
@@ -19,21 +34,31 @@
 body {
   height: 100vh;
   width: 100vw;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   overflow: hidden;
   /* No scrolling in the main app window */
   user-select: none;
-  /* Makes it feel like a native app */
+  /* Desktop app feel */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* App structural layout */
+#root,
 .app-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
 .main-layout {
   display: flex;
   flex: 1;
+  min-height: 0;
+  /* CRITICAL: Allows flex children to shrink below content size */
   overflow: hidden;
 }

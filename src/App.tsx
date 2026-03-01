@@ -6,7 +6,6 @@ import { MainContent } from './components/MainContent';
 import { SearchModal } from './components/SearchModal';
 import Login from './components/Login';
 import { getToken } from './api/auth';
-import './App.css';
 
 const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   const token = getToken();

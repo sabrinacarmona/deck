@@ -1,12 +1,14 @@
 .playbar {
     height: var(--playbar-height);
-    background-color: #121212;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    /* very subtle separation */
+    background-color: var(--bg-base);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    /* slightly stronger border */
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
+    z-index: 20;
+    /* Ensure playbar sits on top */
 }
 
 .playbar-track-info,
@@ -24,12 +26,13 @@
 .track-title {
     color: var(--text-primary);
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .track-artist {
     color: var(--text-secondary);
     font-size: 12px;
+    font-weight: 500;
     margin-top: 4px;
 }
 
@@ -55,7 +58,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.2s;
+    transition: all var(--transition-fast);
 }
 
 .control-btn:hover {
@@ -63,7 +66,7 @@
 }
 
 .control-btn.subtle {
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--text-subdued);
 }
 
 .control-btn.subtle:hover {
@@ -71,17 +74,22 @@
 }
 
 .control-btn.play-pause {
-    color: #000;
-    background-color: #fff;
+    color: var(--bg-base);
+    background-color: var(--text-primary);
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    transition: transform 0.1s;
+    width: 34px;
+    height: 34px;
+    transition: transform var(--transition-fast), background-color var(--transition-fast);
 }
 
 .control-btn.play-pause:hover {
     transform: scale(1.05);
-    color: #000;
+    background-color: #f0f0f0;
+    /* Slightly dim white on hover */
+}
+
+.control-btn.play-pause:active {
+    transform: scale(0.98);
 }
 
 .play-icon {
@@ -99,23 +107,26 @@
 
 .time {
     font-size: 11px;
+    font-weight: 500;
     color: var(--text-secondary);
-    min-width: 30px;
+    min-width: 32px;
     text-align: center;
+    font-variant-numeric: tabular-nums;
+    /* Prevents jumping when numbers change */
 }
 
 .progress-bar-bg {
     flex: 1;
     height: 4px;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.15);
+    /* Slightly more visible track */
     border-radius: 2px;
     overflow: hidden;
     cursor: pointer;
 }
 
 .progress-bar-bg:hover .progress-bar-fill {
-    background-color: #1db954;
-    /* Optional subtle spotify green accent */
+    background-color: var(--accent-color);
 }
 
 .progress-bar-fill {

@@ -1,11 +1,35 @@
+import { useEffect, useState } from 'react';
 import { Home, Search, Library } from 'lucide-react';
+import { getUserPlaylists } from '../api/spotify';
 import './Sidebar.css';
 
 interface SidebarProps {
     onSearchClick: () => void;
 }
 
+interface Playlist {
+    id: string;
+    name: string;
+}
+
 export function Sidebar({ onSearchClick }: SidebarProps) {
+    const [playlists, setPlaylists] = useState<Playlist[]>([]);
+
+    useEffect(() => {
+        let mounted = true;
+        getUserPlaylists()
+            .then(data => {
+                if (mounted && data?.items) {
+                    setPlaylists(data.items);
+                }
+            })
+            .catch(console.error);
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
     return (
         <nav className="sidebar">
             <div className="sidebar-nav">
@@ -25,10 +49,9 @@ export function Sidebar({ onSearchClick }: SidebarProps) {
 
             <div className="sidebar-library">
                 <div className="playlist-list">
-                    <div className="playlist-item">Liked Songs</div>
-                    <div className="playlist-item">Focus Mix</div>
-                    <div className="playlist-item">Discover Weekly</div>
-                    <div className="playlist-item">Midnight Drive</div>
+                    {playlists.map(p => (
+                        <div key={p.id} className="playlist-item">{p.name}</div>
+                    ))}
                 </div>
             </div>
         </nav>

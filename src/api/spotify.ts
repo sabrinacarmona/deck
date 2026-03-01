@@ -32,6 +32,11 @@ export async function getUserPlaylists() {
     return fetchWebApi('me/playlists?limit=50', 'GET');
 }
 
+// Recently Played
+export async function getRecentlyPlayed() {
+    return fetchWebApi('me/player/recently-played?limit=10', 'GET');
+}
+
 // Player State
 export async function getPlayerState() {
     // Returns what is currently playing

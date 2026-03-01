@@ -1,0 +1,39 @@
+:root {
+  background-color: #050505;
+  /* Deep, near-black dark mode */
+  color: #ffffff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --sidebar-width: 250px;
+  --playbar-height: 85px;
+  --text-primary: #ffffff;
+  --text-secondary: #a3a3a3;
+  --bg-hover: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  /* No scrolling in the main app window */
+  user-select: none;
+  /* Makes it feel like a native app */
+}
+
+/* App structural layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.main-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}

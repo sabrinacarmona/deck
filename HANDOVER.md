@@ -128,9 +128,19 @@ Before declaring this application production-ready or distributing it to users, 
 - **Glassmorphism + Huge DOM:** Rendering 1,000+ DOM nodes in `TrackList.tsx` mixed with heavy CSS backdrops inside Tauri's WebKit wrapper will cause severe scroll lag and battery drain.
 - **Action:** `react-window` or `@tanstack/react-virtual` is a mandatory blocker for production release.
 
-### 6. Automated Testing Vacuum
-- **The Gap:** There are zero automated tests.
-- **Action:** Implement `Vitest` with `React Testing Library`. Configure Mock Service Worker (`msw`) so CI/CD pipelines don't exhaust Spotify API rate limits during test runs.
+### 6. Comprehensive Testing Strategy (The Testing Vacuum)
+- **The Gap:** There are currently **zero automated tests** in this repository. 
+- **The Risk:** Shipping untested code interacting with live APIs inside a desktop binary is extremely fragile.
+- **Actionable Blueprint:** The next engineering cycle *must* establish this exact Testing Pyramid:
+  1. **Unit & Component Testing (Vitest + React Testing Library):**
+     - Since we use Vite, install `vitest` for blisteringly fast test execution without Jest config nightmares.
+     - Use `@testing-library/react` to perform DOM-level assertions on the highly reusable `<TrackList />` component (e.g., ensuring implicit conversions of `ms` to `MM:SS` format render correctly).
+  2. **API Mocking (Mock Service Worker - MSW):**
+     - **CRITICAL:** Do *not* hit the live Spotify API during CI/CD test runs. Spotify will aggressively rate-limit the CI build IPs, failing the deployment pipeline.
+     - Install `msw` to intercept `fetchWebApi()` requests at the network level and return standard JSON fixtures of playlists and users.
+  3. **End-to-End Desktop Testing (Playwright/WebdriverIO):**
+     - Normal Cypress web runs won't cut it. Tauri requires specialized testing runners that understand it's an OS-native window wrapper, not just Chrome.
+     - Refer to the official [Tauri Testing Docs](https://tauri.app/v1/guides/testing/webdriver/introduction) to configure WebDriverIO or Playwright to boot the actual `.app` binary and click through the GUI.
 
 ---
 

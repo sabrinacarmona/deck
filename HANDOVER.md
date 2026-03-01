@@ -165,4 +165,46 @@ While the engineering infrastructure has been mapped, the UI/UX layer contains s
 - **Action:** Define responsive CSS breakpoints. Consider adding a dedicated "Mini Player" layout mode for when the application is squeezed horizontally.
 
 ---
+
+## 🤝 Contributing Guidelines & Workflow
+
+For all internal or open-source contributors picking up this codebase:
+
+### Branching Strategy (Trunk-Based)
+1. **Never commit directly to `main`.**
+2. Branch off `main` using the format: `feature/short-description` or `fix/issue-description`.
+3. Push your branch and open a Pull Request (PR) against `main`.
+
+### Pull Request Requirements
+- **Conventional Commits:** All commit messages must follow standard conventional formatting (e.g., `feat: added mini player`, `fix: resolved auth crash`). This allows for automated semantic releases.
+- **Pass Build:** A PR cannot be merged unless `npm run tauri build` exits cleanly.
+- **Zero Type Errors:** A PR cannot be merged if `npx tsc --noEmit` yields any errors. 
+- **Approvals:** Requires at least **1** approving review from a core maintainer.
+
+---
+
+## 🚑 Troubleshooting & FAQ
+
+When cloning a desktop app relying on a 3rd party API (Spotify) and a local Rust bridge, things *will* break. Here is how to fix the most common Day 1 onboarding issues:
+
+### 1. The OAuth 2.0 flow is crashing / failing to redirect
+- **The Cause:** The `@fabianlars/tauri-plugin-oauth` library hardcodes port `1421` for the localhost callback. If another dev server (like a separate Vite or Node instance) is already running on `1421`, the server panics and crashes.
+- **The Fix:** Kill all node processes (`killall node`) or find what is hogging port `1421` and terminate it before launching `npm run tauri dev`.
+
+### 2. The app boots to a completely white screen (No UI)
+- **The Cause:** Tauri launched the native macOS webview *before* Vite finished compiling the React frontend.
+- **The Fix:** Close the app window. Run the command again. Sometimes Vite takes an extra second on the first cold boot.
+
+### 3. State is corrupted / I want to force logout
+- **The Cause:** Auth tokens are currently stored in `localStorage` which doesn't clear when you recompile the app. If a token expires weirdly, the app might soft-lock.
+- **The Fix:** Because this is a Tauri app, you can't just open Chrome DevTools easily. You must navigate to the hidden macOS application support folder and delete the webview cache:
+  ```bash
+  rm -rf "~/Library/Application Support/com.deck.app"
+  ```
+  Then restart the app to trigger a clean login.
+
+### 4. Who owns this project? / Where do I ask questions?
+- **Point of Contact:** For Spotify Developer Dashboard access, API quotas, or Apple Developer Code Signing certificates, contact the Engineering Manager or Lead Architect responsible for this repository's namespace.
+
+---
 *Document generated on conclusion of the primary development and refactoring phase.*
